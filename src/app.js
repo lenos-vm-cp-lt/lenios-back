@@ -1,25 +1,44 @@
 import express from 'express';
-import cors from 'cors';
-import morgan from 'morgan';
-import sampleRouter from './routes/sample.routes.js';
+import Producto from './models/Producto.js';
+import Pedido from './models/Pedido.js';
 
 const app = express();
-
-// Middlewares globales
-app.use(cors());
-app.use(morgan('dev'));
 app.use(express.json());
 
-// Modular Routes
-app.use('/api', sampleRouter);
+app.get('/api/v1/productos', async (req, res) => {
+  try {
+    const productos = await Producto.find();
+    res.json(productos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-// Manejo de rutas no encontradas (404)
-app.use((req, res) => {
-  res.status(404).json({
-    status: 'error',
-    message: 'Resource not found',
-  });
+app.post('/api/v1/productos', async (req, res) => {
+  try {
+    const nuevoProducto = await Producto.create(req.body);
+    res.status(201).json(nuevoProducto);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/v1/pedidos', async (req, res) => {
+  try {
+    const pedidos = await Pedido.find();
+    res.json(pedidos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/v1/pedidos', async (req, res) => {
+  try {
+    const nuevoPedido = await Pedido.create(req.body);
+    res.status(201).json(nuevoPedido);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 export default app;
-//
