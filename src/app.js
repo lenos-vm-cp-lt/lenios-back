@@ -1,6 +1,7 @@
 import express from 'express';
 import Producto from './models/Producto.js';
 import Pedido from './models/Pedido.js';
+import whatsappRoutes from './routes/whatsapp.routes.js';
 
 const app = express();
 app.use(express.json());
@@ -40,5 +41,7 @@ app.post('/api/v1/pedidos', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+app.use('/api/v1/pedidos/whatsapp', whatsappRoutes);
 
 export default app;
