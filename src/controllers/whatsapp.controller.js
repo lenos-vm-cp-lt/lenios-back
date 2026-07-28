@@ -1,3 +1,5 @@
+/* eslint-disable camelcase, max-len, no-underscore-dangle, no-restricted-syntax */
+
 import { generarEnlaceWhatsApp } from '../services/whatsapp.service.js';
 import Pedido from '../models/Pedido.js';
 
@@ -9,13 +11,15 @@ export const crearMensajeWhatsApp = async (req, res) => {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
   try {
-    const { cliente, productos_solicitados, total, observaciones } = req.body;
+    const {
+      cliente, productos_solicitados, total, observaciones,
+    } = req.body;
 
     // Validación: Cliente obligatorio con nombre, teléfono y ubicación
     if (!cliente || !cliente.nombre || !cliente.telefono || !cliente.ubicacion) {
       return res.status(400).json({
         success: false,
-        message: 'La información del cliente (nombre, telefono, ubicacion) es obligatoria.'
+        message: 'La información del cliente (nombre, telefono, ubicacion) es obligatoria.',
       });
     }
 
@@ -23,7 +27,7 @@ export const crearMensajeWhatsApp = async (req, res) => {
     if (!productos_solicitados || !Array.isArray(productos_solicitados) || productos_solicitados.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Debe incluir al menos un producto solicitado.'
+        message: 'Debe incluir al menos un producto solicitado.',
       });
     }
 
@@ -32,7 +36,7 @@ export const crearMensajeWhatsApp = async (req, res) => {
       if (!prod.nombre || !prod.cantidad || !prod.precio_unitario) {
         return res.status(400).json({
           success: false,
-          message: 'Cada producto solicitado debe tener nombre, cantidad y precio_unitario.'
+          message: 'Cada producto solicitado debe tener nombre, cantidad y precio_unitario.',
         });
       }
     }
@@ -41,7 +45,7 @@ export const crearMensajeWhatsApp = async (req, res) => {
     if (total === undefined || typeof total !== 'number' || total < 0) {
       return res.status(400).json({
         success: false,
-        message: 'El total de la orden es obligatorio y debe ser un número no negativo.'
+        message: 'El total de la orden es obligatorio y debe ser un número no negativo.',
       });
     }
 
@@ -51,7 +55,7 @@ export const crearMensajeWhatsApp = async (req, res) => {
       productos_solicitados,
       total,
       observaciones,
-      estado: 'Pendiente'
+      estado: 'Pendiente',
     });
 
     // Generar el enlace y texto del mensaje de WhatsApp a través del servicio
@@ -59,7 +63,7 @@ export const crearMensajeWhatsApp = async (req, res) => {
       cliente,
       productos_solicitados,
       total,
-      observaciones
+      observaciones,
     });
 
     // Responder HTTP 201 Created con el ID del pedido y la URL de WhatsApp
@@ -67,14 +71,14 @@ export const crearMensajeWhatsApp = async (req, res) => {
       success: true,
       pedido_id: nuevoPedido._id,
       whatsapp_url: dataWhatsApp.url,
-      message: dataWhatsApp.mensaje_texto
+      message: dataWhatsApp.mensaje_texto,
     });
   } catch (error) {
     console.error('Error en crearMensajeWhatsApp:', error.message);
     return res.status(500).json({
       success: false,
       message: 'Ocurrió un error interno en el servidor.',
-      error: error.message
+      error: error.message,
     });
   }
 };

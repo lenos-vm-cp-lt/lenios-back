@@ -1,13 +1,17 @@
+/* eslint-disable camelcase, max-len, no-underscore-dangle, no-restricted-syntax */
+
 export const generarEnlaceWhatsApp = (datosPedido) => {
-  const { cliente, productos_solicitados, total, observaciones } = datosPedido;
+  const {
+    cliente, productos_solicitados, total, observaciones,
+  } = datosPedido;
   const telefonoNegocio = process.env.WHATSAPP_PHONE_NUMBER || '524181234567';
 
   // Emojis de alta compatibilidad en todos los dispositivos
-  const eLeno = String.fromCodePoint(0x1F525);      // 🔥 (Fuego)
-  const eCliente = String.fromCodePoint(0x1F464);   // 👤 (Cliente)
-  const eBolsa = String.fromCodePoint(0x1F6CD);     // 🛍️ (Bolsa de compras)
-  const eDinero = String.fromCodePoint(0x1F4B5);    // 💵 (Billetes)
-  const eLapis = String.fromCodePoint(0x270D);      // ✍️ (Lápiz)
+  const eLeno = String.fromCodePoint(0x1F525); // 🔥 (Fuego)
+  const eCliente = String.fromCodePoint(0x1F464); // 👤 (Cliente)
+  const eBolsa = String.fromCodePoint(0x1F6CD); // 🛍️ (Bolsa de compras)
+  const eDinero = String.fromCodePoint(0x1F4B5); // 💵 (Billetes)
+  const eLapis = String.fromCodePoint(0x270D); // ✍️ (Lápiz)
 
   let mensaje = `${eLeno} *NUEVO PEDIDO - LEÑOS RELLENOS*\n\n`;
   mensaje += `${eCliente} *Datos del Cliente:*\n`;
@@ -32,6 +36,6 @@ export const generarEnlaceWhatsApp = (datosPedido) => {
 
   return {
     url,
-    mensaje_texto: mensaje
+    mensaje_texto: mensaje,
   };
 };
