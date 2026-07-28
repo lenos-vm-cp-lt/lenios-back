@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 class DatabaseSingleton {
   constructor() {
     if (DatabaseSingleton.instance) {
+      // eslint-disable-next-line no-constructor-return
       return DatabaseSingleton.instance;
     }
 

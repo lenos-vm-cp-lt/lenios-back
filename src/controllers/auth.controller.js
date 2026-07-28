@@ -19,11 +19,15 @@ export async function login(req, res) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
+    // eslint-disable-next-line no-underscore-dangle
     const token = firmarToken({ id: usuario._id, rol: usuario.rol });
 
     return res.json({
       token,
-      usuario: { id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
+      usuario: {
+        // eslint-disable-next-line no-underscore-dangle
+        id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol,
+      },
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

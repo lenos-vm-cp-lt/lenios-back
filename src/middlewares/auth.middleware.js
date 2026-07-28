@@ -17,6 +17,7 @@ export async function autenticar(req, res, next) {
       return res.status(401).json({ error: 'Usuario no válido o inactivo' });
     }
 
+    // eslint-disable-next-line no-underscore-dangle
     req.usuario = { id: usuario._id, rol: usuario.rol, email: usuario.email };
     return next();
   } catch (error) {

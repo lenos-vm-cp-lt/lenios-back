@@ -19,7 +19,7 @@ const usuarioSchema = new mongoose.Schema({
   activo: { type: Boolean, default: true },
 }, { timestamps: true, versionKey: false });
 
-// Hashea el password antes de guardar 
+// Hashea el password antes de guardar
 usuarioSchema.pre('save', async function hashPassword() {
   if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(12);

@@ -6,7 +6,9 @@ const productoSchema = new mongoose.Schema({
   precio: { type: Number, required: true, min: 0 },
   imagen: { type: String, default: '' },
   disponible: { type: Boolean, default: true },
-  stock: { type: Number, required: true, min: 0, default: 0 }
+  stock: {
+    type: Number, required: true, min: 0, default: 0,
+  },
 }, { timestamps: true, versionKey: false });
 
 export default mongoose.model('Producto', productoSchema);
