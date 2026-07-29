@@ -1,53 +1,26 @@
 import express from 'express';
-import Producto from './models/Producto.js';
-import Pedido from './models/Pedido.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.js';
 import authRoutes from './routes/auth.routes.js';
-import { autenticar } from './middlewares/auth.middleware.js';
-import { autorizar } from './middlewares/roles.middleware.js';
+import productoRoutes from './routes/producto.routes.js';
+import pedidoRoutes from './routes/pedido.routes.js';
 import whatsappRoutes from './routes/whatsapp.routes.js';
 
 const app = express();
 app.use(express.json());
 
+// ─── Documentación interactiva Swagger UI ───────────────────────────────────
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: 'Leños Rellenos - API Docs',
+  swaggerOptions: {
+    persistAuthorization: true,
+  },
+}));
+
+// ─── Rutas API v1 ────────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRoutes);
-
-// Ejemplo de ruta protegida solo para admin (así queda lista para tus otros issues)
-app.get('/api/v1/productos', async (req, res) => {
-  try {
-    const productos = await Producto.find();
-    res.json(productos);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/v1/productos', autenticar, autorizar('admin', 'editor'), async (req, res) => {
-  try {
-    const nuevoProducto = await Producto.create(req.body);
-    res.status(201).json(nuevoProducto);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-app.get('/api/v1/pedidos', async (req, res) => {
-  try {
-    const pedidos = await Pedido.find();
-    res.json(pedidos);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/v1/pedidos', async (req, res) => {
-  try {
-    const nuevoPedido = await Pedido.create(req.body);
-    res.status(201).json(nuevoPedido);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
+app.use('/api/v1/productos', productoRoutes);
+app.use('/api/v1/pedidos', pedidoRoutes);
 app.use('/api/v1/pedidos/whatsapp', whatsappRoutes);
 
 export default app;
