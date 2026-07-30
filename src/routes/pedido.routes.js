@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Pedido from '../models/Pedido.js';
+import { registrarAuditoria } from '../utils/auditLog.js';
 
 const router = Router();
 
@@ -87,8 +88,22 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const nuevoPedido = await Pedido.create(req.body);
+    registrarAuditoria({
+      accion: 'CREAR_PEDIDO',
+      usuarioId: 'cliente_publico',
+      recurso: 'Pedido',
+      // eslint-disable-next-line no-underscore-dangle
+      recursoId: nuevoPedido._id,
+      resultado: 'exito',
+    });
     res.status(201).json(nuevoPedido);
   } catch (error) {
+    registrarAuditoria({
+      accion: 'CREAR_PEDIDO',
+      usuarioId: 'cliente_publico',
+      recurso: 'Pedido',
+      resultado: 'fallo',
+    });
     res.status(400).json({ error: error.message });
   }
 });

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import Producto from '../models/Producto.js';
 import { autenticar } from '../middlewares/auth.middleware.js';
 import { autorizar } from '../middlewares/roles.middleware.js';
+import { registrarAuditoria } from '../utils/auditLog.js';
 
 const router = Router();
 
@@ -96,8 +97,22 @@ router.get('/', async (req, res) => {
 router.post('/', autenticar, autorizar('admin', 'editor'), async (req, res) => {
   try {
     const nuevoProducto = await Producto.create(req.body);
+    registrarAuditoria({
+      accion: 'CREAR_PRODUCTO',
+      usuarioId: req.usuario.id,
+      recurso: 'Producto',
+      // eslint-disable-next-line no-underscore-dangle
+      recursoId: nuevoProducto._id,
+      resultado: 'exito',
+    });
     res.status(201).json(nuevoProducto);
   } catch (error) {
+    registrarAuditoria({
+      accion: 'CREAR_PRODUCTO',
+      usuarioId: req.usuario.id,
+      recurso: 'Producto',
+      resultado: 'fallo',
+    });
     res.status(400).json({ error: error.message });
   }
 });

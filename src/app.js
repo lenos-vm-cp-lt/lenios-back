@@ -5,11 +5,12 @@ import authRoutes from './routes/auth.routes.js';
 import productoRoutes from './routes/producto.routes.js';
 import pedidoRoutes from './routes/pedido.routes.js';
 import whatsappRoutes from './routes/whatsapp.routes.js';
+import vulnerabilidadRoutes from './routes/vulnerabilidad.routes.js';
 
 const app = express();
 app.use(express.json());
 
-// ─── Documentación interactiva Swagger UI ───────────────────────────────────
+// ─── Documentación interactiva Swagger UI ─────────────────────────────
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: 'Leños Rellenos - API Docs',
   swaggerOptions: {
@@ -17,8 +18,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   },
 }));
 
-// ─── Rutas API v1 ────────────────────────────────────────────────────────────
+// ─── Rutas API v1 ──────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/vulnerabilidades', vulnerabilidadRoutes);
 app.use('/api/v1/productos', productoRoutes);
 app.use('/api/v1/pedidos', pedidoRoutes);
 app.use('/api/v1/pedidos/whatsapp', whatsappRoutes);
