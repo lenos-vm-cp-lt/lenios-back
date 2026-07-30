@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import Pedido from '../models/Pedido.js';
+import { autenticar } from '../middlewares/auth.middleware.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
 
 const router = Router();
+
+const ESTADOS_VALIDOS = ['Pendiente', 'En preparacion', 'Entregado', 'Cancelado'];
 
 /**
  * @openapi
@@ -11,7 +14,7 @@ const router = Router();
  *     tags:
  *       - Pedidos
  *     summary: Listar todos los pedidos
- *     description: Retorna todos los pedidos registrados en el sistema. No requiere autenticación.
+ *     description: Retorna todos los pedidos registrados en el sistema, ordenados cronológicamente.
  *     responses:
  *       200:
  *         description: Lista de pedidos obtenida exitosamente.
@@ -30,7 +33,7 @@ const router = Router();
  */
 router.get('/', async (req, res) => {
   try {
-    const pedidos = await Pedido.find();
+    const pedidos = await Pedido.find().sort({ createdAt: 1 });
     res.json(pedidos);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -105,6 +108,108 @@ router.post('/', async (req, res) => {
       resultado: 'fallo',
     });
     res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @openapi
+ * /pedidos/{id}/estado:
+ *   patch:
+ *     tags:
+ *       - Pedidos
+ *     summary: Actualizar el estado de un pedido
+ *     description: Permite a un administrador autenticado cambiar el estado de un pedido existente.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID del pedido a actualizar.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               estado:
+ *                 type: string
+ *                 enum: ['Pendiente', 'En preparacion', 'Entregado', 'Cancelado']
+ *           example:
+ *             estado: "En preparacion"
+ *     responses:
+ *       200:
+ *         description: Estado actualizado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Pedido'
+ *       400:
+ *         description: Estado no reconocido o campo faltante.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Token JWT no proporcionado o inválido.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Pedido no encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.patch('/:id/estado', autenticar, async (req, res) => {
+  try {
+    const { estado } = req.body;
+
+    if (!estado || !ESTADOS_VALIDOS.includes(estado)) {
+      return res.status(400).json({
+        error: `Estado no válido. Estados permitidos: ${ESTADOS_VALIDOS.join(', ')}`,
+      });
+    }
+
+    const pedidoActualizado = await Pedido.findByIdAndUpdate(
+      req.params.id,
+      { estado },
+      { new: true, runValidators: true },
+    );
+
+    if (!pedidoActualizado) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+
+    registrarAuditoria({
+      accion: 'ACTUALIZAR_ESTADO_PEDIDO',
+      usuarioId: req.usuario.id,
+      recurso: 'Pedido',
+      recursoId: req.params.id,
+      resultado: 'exito',
+    });
+
+    return res.json(pedidoActualizado);
+  } catch (error) {
+    registrarAuditoria({
+      accion: 'ACTUALIZAR_ESTADO_PEDIDO',
+      usuarioId: req.usuario?.id || null,
+      recurso: 'Pedido',
+      recursoId: req.params.id,
+      resultado: 'fallo',
+    });
+    return res.status(500).json({ error: error.message });
   }
 });
 

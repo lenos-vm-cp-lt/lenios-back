@@ -6,6 +6,7 @@ import productoRoutes from './routes/producto.routes.js';
 import pedidoRoutes from './routes/pedido.routes.js';
 import whatsappRoutes from './routes/whatsapp.routes.js';
 import vulnerabilidadRoutes from './routes/vulnerabilidad.routes.js';
+import arcoRoutes from './routes/arco.routes.js';
 
 const app = express();
 app.use(express.json());
@@ -24,5 +25,6 @@ app.use('/api/v1/vulnerabilidades', vulnerabilidadRoutes);
 app.use('/api/v1/productos', productoRoutes);
 app.use('/api/v1/pedidos', pedidoRoutes);
 app.use('/api/v1/pedidos/whatsapp', whatsappRoutes);
+app.use('/api/v1/clientes', arcoRoutes);
 
 export default app;
