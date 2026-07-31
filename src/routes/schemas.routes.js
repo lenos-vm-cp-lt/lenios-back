@@ -301,6 +301,34 @@
  *             updatedAt:
  *               type: string
  *               format: date-time
+ *
+ *     # ── Configuración del negocio ──────────────────────────────────────────
+ *     ConfiguracionInput:
+ *       type: object
+ *       required:
+ *         - abierto
+ *       properties:
+ *         abierto:
+ *           type: boolean
+ *           example: true
+ *         mensaje:
+ *           type: string
+ *           example: Cerrado por festivo nacional
+ *
+ *     Configuracion:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ConfiguracionInput'
+ *         - type: object
+ *           properties:
+ *             _id:
+ *               type: string
+ *               example: 64a1b2c3d4e5f6789abcdef8
+ *             createdAt:
+ *               type: string
+ *               format: date-time
+ *             updatedAt:
+ *               type: string
+ *               format: date-time
  */
 
 // Este archivo solo contiene definiciones de esquemas OpenAPI.
