@@ -1,13 +1,14 @@
 import Usuario from '../models/Usuario.js';
 import { firmarToken } from '../utils/jwt.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
+import { successResponse, errorResponse } from '../utils/response.js';
 
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email y password son requeridos' });
+      return errorResponse(res, 400, 'Email y password son requeridos');
     }
 
     const usuario = await Usuario.findOne({ email }).select('+password');
@@ -18,7 +19,7 @@ export async function login(req, res) {
         recurso: 'Usuario',
         resultado: 'fallo',
       });
-      return res.status(401).json({ error: 'Credenciales inválidas' });
+      return errorResponse(res, 401, 'Credenciales inválidas');
     }
 
     const passwordValido = await usuario.compararPassword(password);
@@ -30,7 +31,7 @@ export async function login(req, res) {
         recurso: 'Usuario',
         resultado: 'fallo',
       });
-      return res.status(401).json({ error: 'Credenciales inválidas' });
+      return errorResponse(res, 401, 'Credenciales inválidas');
     }
 
     // eslint-disable-next-line no-underscore-dangle
@@ -46,11 +47,14 @@ export async function login(req, res) {
       resultado: 'exito',
     });
 
-    return res.json({
+    return successResponse(res, 200, 'Sesión iniciada exitosamente', {
       token,
       usuario: {
         // eslint-disable-next-line no-underscore-dangle
-        id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol,
+        id: usuario._id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        rol: usuario.rol,
       },
     });
   } catch (error) {
@@ -60,6 +64,6 @@ export async function login(req, res) {
       recurso: 'Usuario',
       resultado: 'error',
     });
-    return res.status(500).json({ error: error.message });
+    return errorResponse(res, 500, error.message);
   }
 }

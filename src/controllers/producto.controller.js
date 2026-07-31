@@ -1,5 +1,6 @@
 import Producto from '../models/Producto.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
+import { successResponse, errorResponse } from '../utils/response.js';
 
 /**
  * Retorna únicamente los productos que cumplan con disponible: true y stock > 0
@@ -7,9 +8,9 @@ import { registrarAuditoria } from '../utils/auditLog.js';
 export async function getProductosPublicos(req, res) {
   try {
     const productos = await Producto.find({ disponible: true, stock: { $gt: 0 } });
-    return res.json(productos);
+    return successResponse(res, 200, 'Productos obtenidos exitosamente', productos);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return errorResponse(res, 500, error.message);
   }
 }
 
@@ -19,9 +20,9 @@ export async function getProductosPublicos(req, res) {
 export async function getProductosAdmin(req, res) {
   try {
     const productos = await Producto.find();
-    return res.json(productos);
+    return successResponse(res, 200, 'Catálogo completo obtenido exitosamente', productos);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return errorResponse(res, 500, error.message);
   }
 }
 
@@ -35,7 +36,7 @@ export async function createProducto(req, res) {
     } = req.body;
 
     if (!nombre || precio === undefined || stock === undefined || !categoria) {
-      return res.status(400).json({ error: 'Los campos nombre, precio, stock y categoria son obligatorios.' });
+      return errorResponse(res, 400, 'Los campos nombre, precio, stock y categoria son requeridos.');
     }
 
     const nuevoProducto = await Producto.create({
@@ -57,7 +58,7 @@ export async function createProducto(req, res) {
       resultado: 'exito',
     });
 
-    return res.status(201).json(nuevoProducto);
+    return successResponse(res, 201, 'Producto creado exitosamente', nuevoProducto);
   } catch (error) {
     registrarAuditoria({
       accion: 'CREAR_PRODUCTO',
@@ -65,7 +66,7 @@ export async function createProducto(req, res) {
       recurso: 'Producto',
       resultado: 'fallo',
     });
-    return res.status(400).json({ error: error.message });
+    return errorResponse(res, 400, error.message);
   }
 }
 
@@ -79,7 +80,7 @@ export async function updateProducto(req, res) {
 
     const producto = await Producto.findById(id);
     if (!producto) {
-      return res.status(404).json({ error: 'Producto no encontrado' });
+      return errorResponse(res, 404, 'Producto no encontrado');
     }
 
     const productoActualizado = await Producto.findByIdAndUpdate(
@@ -97,7 +98,7 @@ export async function updateProducto(req, res) {
       resultado: 'exito',
     });
 
-    return res.json(productoActualizado);
+    return successResponse(res, 200, 'Producto actualizado exitosamente', productoActualizado);
   } catch (error) {
     registrarAuditoria({
       accion: 'ACTUALIZAR_PRODUCTO',
@@ -106,7 +107,7 @@ export async function updateProducto(req, res) {
       recursoId: req.params.id,
       resultado: 'fallo',
     });
-    return res.status(400).json({ error: error.message });
+    return errorResponse(res, 400, error.message);
   }
 }
 
@@ -119,7 +120,7 @@ export async function deleteProducto(req, res) {
 
     const producto = await Producto.findById(id);
     if (!producto) {
-      return res.status(404).json({ error: 'Producto no encontrado' });
+      return errorResponse(res, 404, 'Producto no encontrado');
     }
 
     await Producto.findByIdAndDelete(id);
@@ -132,7 +133,7 @@ export async function deleteProducto(req, res) {
       resultado: 'exito',
     });
 
-    return res.json({ message: 'Producto eliminado exitosamente' });
+    return successResponse(res, 200, 'Producto eliminado exitosamente');
   } catch (error) {
     registrarAuditoria({
       accion: 'ELIMINAR_PRODUCTO',
@@ -141,6 +142,6 @@ export async function deleteProducto(req, res) {
       recursoId: req.params.id,
       resultado: 'fallo',
     });
-    return res.status(500).json({ error: error.message });
+    return errorResponse(res, 500, error.message);
   }
 }

@@ -1,5 +1,6 @@
 import Configuracion from '../models/Configuracion.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
+import { successResponse, errorResponse } from '../utils/response.js';
 
 /**
  * Consulta pública del estado del restaurante.
@@ -11,9 +12,9 @@ export async function getEstadoNegocio(req, res) {
     if (!config) {
       config = await Configuracion.create({ abierto: true, mensaje: '' });
     }
-    return res.json(config);
+    return successResponse(res, 200, 'Estado del negocio obtenido', config);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return errorResponse(res, 500, error.message);
   }
 }
 
@@ -25,7 +26,7 @@ export async function updateEstadoNegocio(req, res) {
     const { abierto, mensaje } = req.body;
 
     if (abierto === undefined) {
-      return res.status(400).json({ error: 'El campo abierto es obligatorio.' });
+      return errorResponse(res, 400, 'El campo abierto es obligatorio.');
     }
 
     let config = await Configuracion.findOne();
@@ -46,7 +47,7 @@ export async function updateEstadoNegocio(req, res) {
       resultado: 'exito',
     });
 
-    return res.json(config);
+    return successResponse(res, 200, 'Estado del negocio actualizado', config);
   } catch (error) {
     registrarAuditoria({
       accion: 'ACTUALIZAR_ESTADO_NEGOCIO',
@@ -54,6 +55,6 @@ export async function updateEstadoNegocio(req, res) {
       recurso: 'Configuracion',
       resultado: 'fallo',
     });
-    return res.status(400).json({ error: error.message });
+    return errorResponse(res, 400, error.message);
   }
 }
