@@ -50,6 +50,7 @@
  *         - nombre
  *         - precio
  *         - stock
+ *         - categoria
  *       properties:
  *         nombre:
  *           type: string
@@ -64,6 +65,9 @@
  *         imagen:
  *           type: string
  *           example: https://cdn.ejemplo.com/leno-clasico.jpg
+ *         categoria:
+ *           type: string
+ *           example: Salados
  *         disponible:
  *           type: boolean
  *           example: true
@@ -247,6 +251,56 @@
  *         error:
  *           type: string
  *           example: Detalle técnico del error
+ *
+ *     # ── Vulnerabilidades ───────────────────────────────────────────────────
+ *     VulnerabilidadInput:
+ *       type: object
+ *       required:
+ *         - tipo
+ *         - descripcion
+ *         - fechaOcurrencia
+ *         - accionesCorrectivas
+ *       properties:
+ *         tipo:
+ *           type: string
+ *           enum:
+ *             - perdida_destruccion
+ *             - robo_extravio_copia
+ *             - acceso_no_autorizado
+ *             - alteracion_no_autorizada
+ *           example: acceso_no_autorizado
+ *         descripcion:
+ *           type: string
+ *           example: Fuga de datos detectada en el endpoint
+ *         fechaOcurrencia:
+ *           type: string
+ *           format: date-time
+ *           example: "2026-07-31T12:00:00Z"
+ *         accionesCorrectivas:
+ *           type: string
+ *           example: Se revoca el token comprometido
+ *
+ *     Vulnerabilidad:
+ *       allOf:
+ *         - $ref: '#/components/schemas/VulnerabilidadInput'
+ *         - type: object
+ *           properties:
+ *             _id:
+ *               type: string
+ *               example: 64a1b2c3d4e5f6789abcdef9
+ *             reportadoPor:
+ *               type: string
+ *               example: 64a1b2c3d4e5f6789abcdef0
+ *             estado:
+ *               type: string
+ *               enum: [abierta, en_atencion, resuelta]
+ *               example: abierta
+ *             createdAt:
+ *               type: string
+ *               format: date-time
+ *             updatedAt:
+ *               type: string
+ *               format: date-time
  */
 
 // Este archivo solo contiene definiciones de esquemas OpenAPI.
