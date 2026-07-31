@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
 import authRoutes from './routes/auth.routes.js';
@@ -8,6 +9,12 @@ import whatsappRoutes from './routes/whatsapp.routes.js';
 import vulnerabilidadRoutes from './routes/vulnerabilidad.routes.js';
 
 const app = express();
+
+app.use(cors({
+  origin: 'http://localhost:4200',
+  credentials: true,
+}));
+
 app.use(express.json());
 
 // ─── Documentación interactiva Swagger UI ─────────────────────────────
