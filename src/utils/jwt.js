@@ -1,4 +1,9 @@
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+
+if (!globalThis.crypto) {
+  globalThis.crypto = crypto;
+}
 
 export function firmarToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
