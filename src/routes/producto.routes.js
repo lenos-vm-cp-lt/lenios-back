@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { autenticar } from '../middlewares/auth.middleware.js';
 import { autorizar } from '../middlewares/roles.middleware.js';
+import { upload } from '../middlewares/upload.middleware.js';
 import {
   getProductosPublicos,
   getProductosAdmin,
@@ -78,9 +79,36 @@ router.get('/admin', autenticar, autorizar('admin', 'editor'), getProductosAdmin
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/ProductoInput'
+ *             type: object
+ *             required:
+ *               - nombre
+ *               - precio
+ *               - stock
+ *               - categoria
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 example: Leño Relleno Clásico
+ *               descripcion:
+ *                 type: string
+ *                 example: Con queso Oaxaca
+ *               precio:
+ *                 type: number
+ *                 example: 65.00
+ *               categoria:
+ *                 type: string
+ *                 example: Salados
+ *               stock:
+ *                 type: integer
+ *                 example: 15
+ *               disponible:
+ *                 type: boolean
+ *                 example: true
+ *               imagen:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Producto creado exitosamente.
@@ -97,7 +125,19 @@ router.get('/admin', autenticar, autorizar('admin', 'editor'), getProductosAdmin
  *       500:
  *         description: Error interno del servidor.
  */
-router.post('/', autenticar, autorizar('admin', 'editor'), createProducto);
+router.post(
+  '/',
+  autenticar,
+  autorizar('admin', 'editor'),
+  upload.single('imagen'),
+  (req, res, next) => {
+    if (req.file) {
+      req.body.imagen = req.file.path;
+    }
+    next();
+  },
+  createProducto,
+);
 
 /**
  * @openapi
@@ -119,9 +159,31 @@ router.post('/', autenticar, autorizar('admin', 'editor'), createProducto);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/ProductoInput'
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 example: Leño Relleno Especial
+ *               descripcion:
+ *                 type: string
+ *                 example: Con champiñones
+ *               precio:
+ *                 type: number
+ *                 example: 85.00
+ *               categoria:
+ *                 type: string
+ *                 example: Especialidades
+ *               stock:
+ *                 type: integer
+ *                 example: 20
+ *               disponible:
+ *                 type: boolean
+ *                 example: true
+ *               imagen:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: Producto actualizado exitosamente.
@@ -140,7 +202,19 @@ router.post('/', autenticar, autorizar('admin', 'editor'), createProducto);
  *       500:
  *         description: Error interno del servidor.
  */
-router.put('/:id', autenticar, autorizar('admin', 'editor'), updateProducto);
+router.put(
+  '/:id',
+  autenticar,
+  autorizar('admin', 'editor'),
+  upload.single('imagen'),
+  (req, res, next) => {
+    if (req.file) {
+      req.body.imagen = req.file.path;
+    }
+    next();
+  },
+  updateProducto,
+);
 
 /**
  * @openapi
