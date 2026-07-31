@@ -2,8 +2,9 @@ import Pedido from '../models/Pedido.js';
 import SolicitudArco from '../models/SolicitudArco.js';
 import { validarIdentidadCliente } from '../utils/validarIdentidadCliente.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
+import { successResponse, errorResponse } from '../utils/response.js';
 
-const IDENTIDAD_INVALIDA = 'No se pudo validar tu identidad. Verifica tu nombre y teléfono registrados.';
+const IDENTIDAD_INVALIDA = 'No se pudo validar tu identidad. Verifica tu nombre y teléfono.';
 
 // ─── Derecho de ACCESO ─────────────────────────────────────────────
 export async function solicitarAcceso(req, res) {
@@ -13,13 +14,17 @@ export async function solicitarAcceso(req, res) {
 
     if (!cliente) {
       registrarAuditoria({
-        accion: 'ARCO_ACCESO', usuarioId: 'cliente_publico', recurso: 'Cliente', recursoId: req.params.id, resultado: 'fallo',
+        accion: 'ARCO_ACCESO',
+        usuarioId: 'cliente_publico',
+        recurso: 'Cliente',
+        recursoId: req.params.id,
+        resultado: 'fallo',
       });
-      return res.status(401).json({ error: IDENTIDAD_INVALIDA });
+      return errorResponse(res, 401, IDENTIDAD_INVALIDA);
     }
 
     if (cliente.bloqueado || cliente.anonimizado) {
-      return res.status(410).json({ error: 'Tus datos ya no están disponibles (bloqueados o anonimizados).' });
+      return errorResponse(res, 410, 'Tus datos ya no están disponibles.');
     }
 
     await SolicitudArco.create({
@@ -38,16 +43,13 @@ export async function solicitarAcceso(req, res) {
       resultado: 'exito',
     });
 
-    return res.json({
-      mensaje: 'Estos son tus datos personales registrados.',
-      datos: {
-        nombre: cliente.nombre,
-        telefono: cliente.telefono,
-        ubicacion: cliente.ubicacion,
-      },
+    return successResponse(res, 200, 'Estos son tus datos personales registrados.', {
+      nombre: cliente.nombre,
+      telefono: cliente.telefono,
+      ubicacion: cliente.ubicacion,
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return errorResponse(res, 500, error.message);
   }
 }
 
@@ -61,13 +63,17 @@ export async function solicitarRectificacion(req, res) {
     const cliente = await validarIdentidadCliente(req.params.id, telefono, nombre);
     if (!cliente) {
       registrarAuditoria({
-        accion: 'ARCO_RECTIFICACION', usuarioId: 'cliente_publico', recurso: 'Cliente', recursoId: req.params.id, resultado: 'fallo',
+        accion: 'ARCO_RECTIFICACION',
+        usuarioId: 'cliente_publico',
+        recurso: 'Cliente',
+        recursoId: req.params.id,
+        resultado: 'fallo',
       });
-      return res.status(401).json({ error: IDENTIDAD_INVALIDA });
+      return errorResponse(res, 401, IDENTIDAD_INVALIDA);
     }
 
     if (cliente.bloqueado || cliente.anonimizado) {
-      return res.status(410).json({ error: 'Tus datos ya no están disponibles (bloqueados o anonimizados).' });
+      return errorResponse(res, 410, 'Tus datos ya no están disponibles.');
     }
 
     if (nuevoNombre) cliente.nombre = nuevoNombre;
@@ -91,16 +97,13 @@ export async function solicitarRectificacion(req, res) {
       resultado: 'exito',
     });
 
-    return res.json({
-      mensaje: 'Tus datos fueron actualizados correctamente.',
-      datos: {
-        nombre: cliente.nombre,
-        telefono: cliente.telefono,
-        ubicacion: cliente.ubicacion,
-      },
+    return successResponse(res, 200, 'Tus datos fueron actualizados correctamente.', {
+      nombre: cliente.nombre,
+      telefono: cliente.telefono,
+      ubicacion: cliente.ubicacion,
     });
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    return errorResponse(res, 400, error.message);
   }
 }
 
@@ -112,9 +115,13 @@ export async function solicitarBloqueo(req, res) {
 
     if (!cliente) {
       registrarAuditoria({
-        accion: 'ARCO_BLOQUEO', usuarioId: 'cliente_publico', recurso: 'Cliente', recursoId: req.params.id, resultado: 'fallo',
+        accion: 'ARCO_BLOQUEO',
+        usuarioId: 'cliente_publico',
+        recurso: 'Cliente',
+        recursoId: req.params.id,
+        resultado: 'fallo',
       });
-      return res.status(401).json({ error: IDENTIDAD_INVALIDA });
+      return errorResponse(res, 401, IDENTIDAD_INVALIDA);
     }
 
     cliente.bloqueado = true;
@@ -125,7 +132,7 @@ export async function solicitarBloqueo(req, res) {
       clienteId: cliente._id,
       tipo: 'oposicion',
       detalleSolicitud: motivo || '',
-      respuesta: 'Tus datos personales fueron bloqueados y ya no serán tratados, salvo por obligaciones legales pendientes.',
+      respuesta: 'Tus datos personales fueron bloqueados.',
     });
 
     registrarAuditoria({
@@ -137,9 +144,9 @@ export async function solicitarBloqueo(req, res) {
       resultado: 'exito',
     });
 
-    return res.json({ mensaje: 'Tus datos fueron bloqueados correctamente.' });
+    return successResponse(res, 200, 'Tus datos fueron bloqueados correctamente.');
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    return errorResponse(res, 400, error.message);
   }
 }
 
@@ -151,9 +158,13 @@ export async function solicitarCancelacion(req, res) {
 
     if (!cliente) {
       registrarAuditoria({
-        accion: 'ARCO_CANCELACION', usuarioId: 'cliente_publico', recurso: 'Cliente', recursoId: req.params.id, resultado: 'fallo',
+        accion: 'ARCO_CANCELACION',
+        usuarioId: 'cliente_publico',
+        recurso: 'Cliente',
+        recursoId: req.params.id,
+        resultado: 'fallo',
       });
-      return res.status(401).json({ error: IDENTIDAD_INVALIDA });
+      return errorResponse(res, 401, IDENTIDAD_INVALIDA);
     }
 
     const telefonoOriginal = cliente.telefono;
@@ -166,8 +177,7 @@ export async function solicitarCancelacion(req, res) {
     cliente.bloqueado = true;
     await cliente.save();
 
-    // Anonimiza las copias embebidas en el histórico de pedidos,
-    // sin borrar los pedidos (se conserva el histórico de ventas)
+    // Anonimiza las copias embebidas en el histórico de pedidos
     await Pedido.updateMany(
       { 'cliente.telefono': telefonoOriginal },
       {
@@ -183,7 +193,7 @@ export async function solicitarCancelacion(req, res) {
       // eslint-disable-next-line no-underscore-dangle
       clienteId: cliente._id,
       tipo: 'cancelacion',
-      respuesta: 'Tus datos personales fueron anonimizados. El histórico de compras se conserva sin datos identificables, conforme a la ley.',
+      respuesta: 'Tus datos personales fueron anonimizados.',
     });
 
     registrarAuditoria({
@@ -195,8 +205,8 @@ export async function solicitarCancelacion(req, res) {
       resultado: 'exito',
     });
 
-    return res.json({ mensaje: 'Tus datos fueron anonimizados correctamente. Tu historial de compras se conserva sin información identificable.' });
+    return successResponse(res, 200, 'Tus datos fueron anonimizados correctamente.');
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    return errorResponse(res, 400, error.message);
   }
 }
