@@ -56,6 +56,7 @@ export async function createProducto(req, res) {
       // eslint-disable-next-line no-underscore-dangle
       recursoId: nuevoProducto._id,
       resultado: 'exito',
+      ip: req.ip,
     });
 
     return successResponse(res, 201, 'Producto creado exitosamente', nuevoProducto);
@@ -65,6 +66,7 @@ export async function createProducto(req, res) {
       usuarioId: req.usuario ? req.usuario.id : 'anonimo',
       recurso: 'Producto',
       resultado: 'fallo',
+      ip: req.ip,
     });
     return errorResponse(res, 400, error.message);
   }
@@ -96,6 +98,7 @@ export async function updateProducto(req, res) {
       // eslint-disable-next-line no-underscore-dangle
       recursoId: productoActualizado._id,
       resultado: 'exito',
+      ip: req.ip,
     });
 
     return successResponse(res, 200, 'Producto actualizado exitosamente', productoActualizado);
@@ -131,6 +134,7 @@ export async function deleteProducto(req, res) {
       recurso: 'Producto',
       recursoId: id,
       resultado: 'exito',
+      ip: req.ip,
     });
 
     return successResponse(res, 200, 'Producto eliminado exitosamente');
@@ -141,6 +145,7 @@ export async function deleteProducto(req, res) {
       recurso: 'Producto',
       recursoId: req.params.id,
       resultado: 'fallo',
+      ip: req.ip,
     });
     return errorResponse(res, 500, error.message);
   }
