@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import mongoSanitize from 'express-mongo-sanitize';
+import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
 import authRoutes from './routes/auth.routes.js';
@@ -19,6 +21,22 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// ─── Prevención de Inyección NoSQL ─────────────────────────────────────
+app.use(mongoSanitize());
+
+// ─── Prevención de Ataques de Fuerza Bruta (Rate Limiting) ─────────────
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // Límite de 100 peticiones por IP por ventana
+  message: {
+    success: false,
+    error: 'Demasiadas peticiones (Too Many Requests). Por favor intenta más tarde.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', apiLimiter);
 
 // ─── Documentación interactiva Swagger UI ─────────────────────────────
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

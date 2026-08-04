@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { autenticar } from '../middlewares/auth.middleware.js';
+import { autorizar } from '../middlewares/roles.middleware.js';
 import {
   getPedidos,
   createPedido,
@@ -32,7 +33,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', getPedidos);
+router.get('/', autenticar, autorizar('admin', 'editor'), getPedidos);
 
 /**
  * @openapi
@@ -145,6 +146,6 @@ router.post('/', createPedido);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.patch('/:id/estado', autenticar, updateEstadoPedido);
+router.patch('/:id/estado', autenticar, autorizar('admin', 'editor'), updateEstadoPedido);
 
 export default router;
