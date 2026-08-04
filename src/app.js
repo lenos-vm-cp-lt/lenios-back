@@ -21,11 +21,26 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ─── Prevención de Inyección NoSQL ─────────────────────────────────────
-app.use(mongoSanitize());
+// ─── Documentación interactiva Swagger UI (PRIMERO, antes de la sanitización) ───
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: 'Leños Rellenos - API Docs',
+  swaggerOptions: {
+    persistAuthorization: true,
+  },
+}));
 
-// ─── Prevención de Ataques de Fuerza Bruta (Rate Limiting) ─────────────
+// ─── Prevención de Inyección NoSQL (Se aplica a partir de las rutas /api) ───────
+app.use('/api', mongoSanitize({
+  replaceWith: '_',
+  allowDots: true,
+  onSanitize: ({ req, key }) => {
+    console.warn(`[NoSQL Sanitizer] Clave eliminada/reemplazada: ${key} en IP: ${req.ip}`);
+  },
+}));
+
+// ─── Prevención de Ataques de Fuerza Bruta (Rate Limiting) ───────────────────────
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 100, // Límite de 100 peticiones por IP por ventana
@@ -38,15 +53,7 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-// ─── Documentación interactiva Swagger UI ─────────────────────────────
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customSiteTitle: 'Leños Rellenos - API Docs',
-  swaggerOptions: {
-    persistAuthorization: true,
-  },
-}));
-
-// ─── Rutas API v1 ──────────────────────────────────────────────────────
+// ─── Rutas API v1 ──────────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/vulnerabilidades', vulnerabilidadRoutes);
 app.use('/api/v1/productos', productoRoutes);
