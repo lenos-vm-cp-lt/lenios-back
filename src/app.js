@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
 import authRoutes from './routes/auth.routes.js';
@@ -9,6 +10,7 @@ import vulnerabilidadRoutes from './routes/vulnerabilidad.routes.js';
 import arcoRoutes from './routes/arco.routes.js';
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 // ─── Documentación interactiva Swagger UI ─────────────────────────────
