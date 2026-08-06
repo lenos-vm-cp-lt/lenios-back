@@ -13,9 +13,13 @@ const usuarioSchema = new mongoose.Schema({
   password: { type: String, required: true, select: false },
   rol: {
     type: String,
-    enum: ['admin', 'editor', 'soporte'],
-    default: 'soporte',
+    enum: ['admin', 'editor', 'soporte', 'cliente'],
+    default: 'cliente',
   },
+  telefono: { type: String, trim: true, default: '' },
+  ubicacion: { type: String, trim: true, default: '' },
+  avisoPrivacidadAceptado: { type: Boolean, default: false },
+  fechaAceptacionAviso: { type: Date, default: null },
   activo: { type: Boolean, default: true },
 }, { timestamps: true, versionKey: false });
 

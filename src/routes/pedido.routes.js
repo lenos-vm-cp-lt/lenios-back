@@ -5,6 +5,7 @@ import {
   getPedidos,
   createPedido,
   updateEstadoPedido,
+  updatePagoPedido,
 } from '../controllers/pedido.controller.js';
 
 const router = Router();
@@ -83,7 +84,7 @@ router.get('/', autenticar, autorizar('admin', 'editor'), getPedidos);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', createPedido);
+router.post('/', autenticar, createPedido);
 
 /**
  * @openapi
@@ -147,5 +148,6 @@ router.post('/', createPedido);
  *               $ref: '#/components/schemas/Error'
  */
 router.patch('/:id/estado', autenticar, autorizar('admin', 'editor'), updateEstadoPedido);
+router.patch('/:id/pago', autenticar, autorizar('admin', 'editor'), updatePagoPedido);
 
 export default router;

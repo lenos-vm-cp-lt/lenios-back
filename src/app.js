@@ -37,13 +37,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   },
 }));
 
-app.use('/api', mongoSanitize({
-  replaceWith: '_',
-  allowDots: true,
-  onSanitize: ({ req, key }) => {
-    console.warn(`[NoSQL Sanitizer] Clave eliminada/reemplazada: ${key} en IP: ${req.ip}`);
-  },
-}));
+// ─── Prevención de Inyección NoSQL (Compatible con Express 5) ─────────────
+app.use('/api', (req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body, { replaceWith: '_' });
+  if (req.params) mongoSanitize.sanitize(req.params, { replaceWith: '_' });
+  if (req.query && typeof req.query === 'object') mongoSanitize.sanitize(req.query, { replaceWith: '_' });
+  next();
+});
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
