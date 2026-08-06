@@ -1,4 +1,5 @@
 import Pedido from '../models/Pedido.js';
+import Usuario from '../models/Usuario.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
@@ -14,6 +15,8 @@ export async function getPedidos(req, res) {
       const obj = p.toObject();
       const entrega = obj.metodoEntrega || obj.metodo_entrega || obj.metodo_envio || 'A domicilio';
       const pago = obj.metodoPago || obj.metodo_pago || 'Efectivo';
+      const pagoRecibido = obj.pago_recibido !== undefined ? obj.pago_recibido : (obj.estado_pago === 'Pagado' || obj.estado === 'Entregado');
+      const estadoPago = obj.estado_pago || (pagoRecibido ? 'Pagado' : 'Pendiente');
       return {
         ...obj,
         metodoEntrega: entrega,
@@ -21,6 +24,10 @@ export async function getPedidos(req, res) {
         metodo_envio: entrega,
         metodoPago: pago,
         metodo_pago: pago,
+        pago_recibido: pagoRecibido,
+        pagoRecibido: pagoRecibido,
+        estado_pago: estadoPago,
+        estadoPago: estadoPago,
       };
     });
     return successResponse(res, 200, 'Pedidos obtenidos exitosamente', pedidos);
@@ -34,6 +41,14 @@ export async function getPedidos(req, res) {
  */
 export async function createPedido(req, res) {
   try {
+    const usuarioId = req.usuario?.id;
+    if (usuarioId) {
+      const usuario = await Usuario.findById(usuarioId);
+      if (usuario && !usuario.avisoPrivacidadAceptado) {
+        return errorResponse(res, 403, 'Debes aceptar el Aviso de Privacidad para realizar pedidos.');
+      }
+    }
+
     const payload = { ...req.body };
 
     const entrega = payload.metodoEntrega || payload.metodo_entrega || payload.metodo_envio || 'A domicilio';
@@ -48,10 +63,14 @@ export async function createPedido(req, res) {
     payload.notas = notas;
     payload.observaciones = notas;
 
+    const esTarjeta = pago.toLowerCase().includes('tarjeta');
+    payload.pago_recibido = payload.pago_recibido !== undefined ? payload.pago_recibido : esTarjeta;
+    payload.estado_pago = payload.estado_pago || (payload.pago_recibido ? 'Pagado' : 'Pendiente');
+
     const nuevoPedido = await Pedido.create(payload);
     registrarAuditoria({
       accion: 'CREAR_PEDIDO',
-      usuarioId: 'cliente_publico',
+      usuarioId: req.usuario?.id || 'cliente_registrado',
       recurso: 'Pedido',
       // eslint-disable-next-line no-underscore-dangle
       recursoId: nuevoPedido._id,
@@ -62,7 +81,7 @@ export async function createPedido(req, res) {
   } catch (error) {
     registrarAuditoria({
       accion: 'CREAR_PEDIDO',
-      usuarioId: 'cliente_publico',
+      usuarioId: req.usuario?.id || 'cliente',
       recurso: 'Pedido',
       resultado: 'fallo',
       ip: req.ip,
@@ -109,9 +128,17 @@ export async function updateEstadoPedido(req, res) {
       );
     }
 
+    const updateFields = { estado: estadoNormalizado };
+
+    // Si el estado cambia a 'Entregado', el pago se auto-marca como Recibido/Pagado automáticamente
+    if (estadoNormalizado === 'Entregado') {
+      updateFields.pago_recibido = true;
+      updateFields.estado_pago = 'Pagado';
+    }
+
     const pedidoActualizado = await Pedido.findByIdAndUpdate(
       req.params.id,
-      { estado: estadoNormalizado },
+      updateFields,
       { new: true, runValidators: true },
     );
 
@@ -138,6 +165,42 @@ export async function updateEstadoPedido(req, res) {
       resultado: 'fallo',
       ip: req.ip,
     });
+    return errorResponse(res, 500, error.message);
+  }
+}
+
+/**
+ * Actualizar el estado de pago de un pedido (Efectivo / Transferencia recibido o pendiente)
+ */
+export async function updatePagoPedido(req, res) {
+  try {
+    const { pagoRecibido, estadoPago } = req.body;
+    const isPagado = pagoRecibido === true || estadoPago === 'Pagado' || estadoPago === 'Recibido';
+
+    const pedidoActualizado = await Pedido.findByIdAndUpdate(
+      req.params.id,
+      {
+        pago_recibido: isPagado,
+        estado_pago: isPagado ? 'Pagado' : 'Pendiente'
+      },
+      { new: true }
+    );
+
+    if (!pedidoActualizado) {
+      return errorResponse(res, 404, 'Pedido no encontrado');
+    }
+
+    registrarAuditoria({
+      accion: 'ACTUALIZAR_PAGO_PEDIDO',
+      usuarioId: req.usuario?.id || 'admin',
+      recurso: 'Pedido',
+      recursoId: req.params.id,
+      resultado: 'exito',
+      ip: req.ip,
+    });
+
+    return successResponse(res, 200, 'Estado de pago actualizado correctamente', pedidoActualizado);
+  } catch (error) {
     return errorResponse(res, 500, error.message);
   }
 }

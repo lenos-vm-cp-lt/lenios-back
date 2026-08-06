@@ -16,16 +16,18 @@ export async function getDashboardMetrics(req, res) {
     // 1. Obtener todos los pedidos
     const todosLosPedidos = await Pedido.find().sort({ createdAt: -1 });
 
-    // 2. Ventas del día (pedidos no cancelados creados hoy)
+    // 2. Ventas del día (pedidos no cancelados con pago realmente recibido o entregados)
+    const esPagoConfirmado = (p) => p.pago_recibido === true || p.estado_pago === 'Pagado' || p.estado === 'Entregado';
+
     const pedidosHoy = todosLosPedidos.filter(
-      (p) => new Date(p.createdAt) >= startOfToday && p.estado !== 'Cancelado'
+      (p) => new Date(p.createdAt) >= startOfToday && p.estado !== 'Cancelado' && esPagoConfirmado(p)
     );
     let ventasDelDia = pedidosHoy.reduce((acc, p) => acc + (p.total || 0), 0);
 
-    // Si no hay ventas registradas hoy aún, calcular el acumulado de los pedidos recientes activos
+    // Si no hay ventas del día aún, calcular el acumulado de los pedidos cobrados/recibidos
     if (ventasDelDia === 0) {
-      const pedidosActivosRecientes = todosLosPedidos.filter((p) => p.estado !== 'Cancelado');
-      ventasDelDia = pedidosActivosRecientes.reduce((acc, p) => acc + (p.total || 0), 0);
+      const pedidosCobrados = todosLosPedidos.filter((p) => p.estado !== 'Cancelado' && esPagoConfirmado(p));
+      ventasDelDia = pedidosCobrados.reduce((acc, p) => acc + (p.total || 0), 0);
     }
 
     // 3. Ventas de ayer para variación
