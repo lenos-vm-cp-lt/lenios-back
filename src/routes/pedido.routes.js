@@ -1,11 +1,13 @@
 import { Router } from 'express';
-import Pedido from '../models/Pedido.js';
 import { autenticar } from '../middlewares/auth.middleware.js';
-import { registrarAuditoria } from '../utils/auditLog.js';
+import { autorizar } from '../middlewares/roles.middleware.js';
+import {
+  getPedidos,
+  createPedido,
+  updateEstadoPedido,
+} from '../controllers/pedido.controller.js';
 
 const router = Router();
-
-const ESTADOS_VALIDOS = ['Pendiente', 'En preparacion', 'Entregado', 'Cancelado'];
 
 /**
  * @openapi
@@ -31,14 +33,7 @@ const ESTADOS_VALIDOS = ['Pendiente', 'En preparacion', 'Entregado', 'Cancelado'
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', async (req, res) => {
-  try {
-    const pedidos = await Pedido.find().sort({ createdAt: 1 });
-    res.json(pedidos);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+router.get('/', autenticar, autorizar('admin', 'editor'), getPedidos);
 
 /**
  * @openapi
@@ -88,28 +83,7 @@ router.get('/', async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', async (req, res) => {
-  try {
-    const nuevoPedido = await Pedido.create(req.body);
-    registrarAuditoria({
-      accion: 'CREAR_PEDIDO',
-      usuarioId: 'cliente_publico',
-      recurso: 'Pedido',
-      // eslint-disable-next-line no-underscore-dangle
-      recursoId: nuevoPedido._id,
-      resultado: 'exito',
-    });
-    res.status(201).json(nuevoPedido);
-  } catch (error) {
-    registrarAuditoria({
-      accion: 'CREAR_PEDIDO',
-      usuarioId: 'cliente_publico',
-      recurso: 'Pedido',
-      resultado: 'fallo',
-    });
-    res.status(400).json({ error: error.message });
-  }
-});
+router.post('/', createPedido);
 
 /**
  * @openapi
@@ -172,45 +146,6 @@ router.post('/', async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.patch('/:id/estado', autenticar, async (req, res) => {
-  try {
-    const { estado } = req.body;
-
-    if (!estado || !ESTADOS_VALIDOS.includes(estado)) {
-      return res.status(400).json({
-        error: `Estado no válido. Estados permitidos: ${ESTADOS_VALIDOS.join(', ')}`,
-      });
-    }
-
-    const pedidoActualizado = await Pedido.findByIdAndUpdate(
-      req.params.id,
-      { estado },
-      { new: true, runValidators: true },
-    );
-
-    if (!pedidoActualizado) {
-      return res.status(404).json({ error: 'Pedido no encontrado' });
-    }
-
-    registrarAuditoria({
-      accion: 'ACTUALIZAR_ESTADO_PEDIDO',
-      usuarioId: req.usuario.id,
-      recurso: 'Pedido',
-      recursoId: req.params.id,
-      resultado: 'exito',
-    });
-
-    return res.json(pedidoActualizado);
-  } catch (error) {
-    registrarAuditoria({
-      accion: 'ACTUALIZAR_ESTADO_PEDIDO',
-      usuarioId: req.usuario?.id || null,
-      recurso: 'Pedido',
-      recursoId: req.params.id,
-      resultado: 'fallo',
-    });
-    return res.status(500).json({ error: error.message });
-  }
-});
+router.patch('/:id/estado', autenticar, autorizar('admin', 'editor'), updateEstadoPedido);
 
 export default router;

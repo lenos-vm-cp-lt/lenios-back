@@ -2,6 +2,7 @@
 
 import { generarEnlaceWhatsApp } from '../services/whatsapp.service.js';
 import Pedido from '../models/Pedido.js';
+import { successResponse, errorResponse } from '../utils/response.js';
 
 /**
  * Controlador para validar el cuerpo de la petición, guardar el pedido en MongoDB Atlas y crear el mensaje estructurado de WhatsApp.
@@ -17,36 +18,32 @@ export const crearMensajeWhatsApp = async (req, res) => {
 
     // Validación: Cliente obligatorio con nombre, teléfono y ubicación
     if (!cliente || !cliente.nombre || !cliente.telefono || !cliente.ubicacion) {
-      return res.status(400).json({
-        success: false,
-        message: 'La información del cliente (nombre, telefono, ubicacion) es obligatoria.',
-      });
+      return errorResponse(
+        res,
+        400,
+        'La información del cliente (nombre, telefono, ubicacion) es obligatoria.',
+      );
     }
 
     // Validación: Productos solicitados obligatorio y no vacío
     if (!productos_solicitados || !Array.isArray(productos_solicitados) || productos_solicitados.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Debe incluir al menos un producto solicitado.',
-      });
+      return errorResponse(res, 400, 'Debe incluir al menos un producto solicitado.');
     }
 
     // Validación: Validar campos mínimos de cada producto
     for (const prod of productos_solicitados) {
       if (!prod.nombre || !prod.cantidad || !prod.precio_unitario) {
-        return res.status(400).json({
-          success: false,
-          message: 'Cada producto solicitado debe tener nombre, cantidad y precio_unitario.',
-        });
+        return errorResponse(
+          res,
+          400,
+          'Cada producto solicitado debe tener nombre, cantidad y precio_unitario.',
+        );
       }
     }
 
     // Validación: Total obligatorio y válido
     if (total === undefined || typeof total !== 'number' || total < 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'El total de la orden es obligatorio y debe ser un número no negativo.',
-      });
+      return errorResponse(res, 400, 'El total de la orden es obligatorio y debe ser un número no negativo.');
     }
 
     // Guardar la orden en MongoDB Atlas
@@ -67,18 +64,13 @@ export const crearMensajeWhatsApp = async (req, res) => {
     });
 
     // Responder HTTP 201 Created con el ID del pedido y la URL de WhatsApp
-    return res.status(201).json({
-      success: true,
+    return successResponse(res, 201, 'Pedido creado y enlace de WhatsApp generado exitosamente', {
       pedido_id: nuevoPedido._id,
       whatsapp_url: dataWhatsApp.url,
-      message: dataWhatsApp.mensaje_texto,
+      whatsapp_message: dataWhatsApp.mensaje_texto,
     });
   } catch (error) {
     console.error('Error en crearMensajeWhatsApp:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Ocurrió un error interno en el servidor.',
-      error: error.message,
-    });
+    return errorResponse(res, 500, 'Ocurrió un error interno en el servidor.', error.message);
   }
 };

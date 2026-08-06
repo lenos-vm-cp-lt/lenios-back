@@ -1,5 +1,6 @@
 import Vulnerabilidad from '../models/Vulnerabilidad.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
+import { successResponse, errorResponse } from '../utils/response.js';
 
 export async function registrarVulnerabilidad(req, res) {
   try {
@@ -8,7 +9,11 @@ export async function registrarVulnerabilidad(req, res) {
     } = req.body;
 
     if (!tipo || !descripcion || !fechaOcurrencia || !accionesCorrectivas) {
-      return res.status(400).json({ error: 'Todos los campos son requeridos: tipo, descripcion, fechaOcurrencia, accionesCorrectivas' });
+      return errorResponse(
+        res,
+        400,
+        'Campos requeridos: tipo, descripcion, fechaOcurrencia, accionesCorrectivas',
+      );
     }
 
     const vulnerabilidad = await Vulnerabilidad.create({
@@ -28,17 +33,17 @@ export async function registrarVulnerabilidad(req, res) {
       resultado: 'exito',
     });
 
-    return res.status(201).json(vulnerabilidad);
+    return successResponse(res, 201, 'Vulnerabilidad registrada exitosamente', vulnerabilidad);
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    return errorResponse(res, 400, error.message);
   }
 }
 
 export async function listarVulnerabilidades(req, res) {
   try {
     const vulnerabilidades = await Vulnerabilidad.find().sort({ createdAt: -1 });
-    return res.json(vulnerabilidades);
+    return successResponse(res, 200, 'Lista de vulnerabilidades obtenida', vulnerabilidades);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return errorResponse(res, 500, error.message);
   }
 }

@@ -1,6 +1,12 @@
 import dotenv from 'dotenv';
+import crypto from 'crypto';
+
 import app from './app.js';
 import dbSingleton from './config/db.js';
+
+if (!globalThis.crypto) {
+  globalThis.crypto = crypto;
+}
 
 dotenv.config();
 
