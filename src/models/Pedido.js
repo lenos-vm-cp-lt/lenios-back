@@ -15,8 +15,11 @@ const pedidoSchema = new mongoose.Schema({
   },
   productos_solicitados: [productoSolicitadoSchema],
   total: { type: Number, required: true, min: 0 },
-  estado: { type: String, enum: ['Pendiente', 'En preparacion', 'Entregado', 'Cancelado'], default: 'Pendiente' },
-  metodo_envio: { type: String, enum: ['Domicilio', 'Recoger en Local'], default: 'Domicilio' },
+  estado: { type: String, enum: ['Pendiente', 'En preparacion', 'En camino', 'Entregado', 'Cancelado'], default: 'Pendiente' },
+  metodo_envio: { type: String, default: 'A domicilio' },
+  metodo_entrega: { type: String, default: 'A domicilio' },
+  metodo_pago: { type: String, default: 'Efectivo' },
+  notas: { type: String, default: '' },
   observaciones: { type: String, default: '' },
 }, { timestamps: true, versionKey: false });
 
