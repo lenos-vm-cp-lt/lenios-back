@@ -56,6 +56,7 @@ export async function createPedido(req, res) {
       // eslint-disable-next-line no-underscore-dangle
       recursoId: nuevoPedido._id,
       resultado: 'exito',
+      ip: req.ip,
     });
     return successResponse(res, 201, 'Pedido creado exitosamente', nuevoPedido);
   } catch (error) {
@@ -64,6 +65,7 @@ export async function createPedido(req, res) {
       usuarioId: 'cliente_publico',
       recurso: 'Pedido',
       resultado: 'fallo',
+      ip: req.ip,
     });
     return errorResponse(res, 400, error.message);
   }
@@ -123,6 +125,7 @@ export async function updateEstadoPedido(req, res) {
       recurso: 'Pedido',
       recursoId: req.params.id,
       resultado: 'exito',
+      ip: req.ip,
     });
 
     return successResponse(res, 200, 'Estado del pedido actualizado', pedidoActualizado);
@@ -133,6 +136,7 @@ export async function updateEstadoPedido(req, res) {
       recurso: 'Pedido',
       recursoId: req.params.id,
       resultado: 'fallo',
+      ip: req.ip,
     });
     return errorResponse(res, 500, error.message);
   }
