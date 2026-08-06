@@ -4,9 +4,18 @@ import {
   solicitarRectificacion,
   solicitarBloqueo,
   solicitarCancelacion,
+  crearSolicitudArco,
+  obtenerSolicitudesArco,
+  actualizarSolicitudArco,
 } from '../controllers/arco.controller.js';
 
 const router = Router();
+
+router.get('/', obtenerSolicitudesArco);
+router.post('/', crearSolicitudArco);
+router.post('/derechos-arco', crearSolicitudArco);
+router.patch('/:id', actualizarSolicitudArco);
+router.put('/:id', actualizarSolicitudArco);
 
 /**
  * @openapi

@@ -11,6 +11,7 @@ import whatsappRoutes from './routes/whatsapp.routes.js';
 import vulnerabilidadRoutes from './routes/vulnerabilidad.routes.js';
 import arcoRoutes from './routes/arco.routes.js';
 import configRoutes from './routes/config.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 
 const app = express();
@@ -60,7 +61,9 @@ app.use('/api/v1/productos', productoRoutes);
 app.use('/api/v1/pedidos', pedidoRoutes);
 app.use('/api/v1/pedidos/whatsapp', whatsappRoutes);
 app.use('/api/v1/clientes', arcoRoutes);
+app.use('/api/v1/derechos-arco', arcoRoutes);
 app.use('/api/v1/config', configRoutes);
+app.use('/api/v1/admin/dashboard', adminRoutes);
 
 // Manejo de Ruta No Encontrada (404)
 app.use((req, res) => {
