@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 import util from 'util';
 import dns from 'dns';
+
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 class DatabaseSingleton {
   constructor() {
     if (DatabaseSingleton.instance) {
+      // eslint-disable-next-line no-constructor-return
       return DatabaseSingleton.instance;
     }
     this.connection = null;

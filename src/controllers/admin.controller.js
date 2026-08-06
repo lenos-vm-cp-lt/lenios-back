@@ -20,7 +20,7 @@ export async function getDashboardMetrics(req, res) {
     const esPagoConfirmado = (p) => p.pago_recibido === true || p.estado_pago === 'Pagado' || p.estado === 'Entregado';
 
     const pedidosHoy = todosLosPedidos.filter(
-      (p) => new Date(p.createdAt) >= startOfToday && p.estado !== 'Cancelado' && esPagoConfirmado(p)
+      (p) => new Date(p.createdAt) >= startOfToday && p.estado !== 'Cancelado' && esPagoConfirmado(p),
     );
     let ventasDelDia = pedidosHoy.reduce((acc, p) => acc + (p.total || 0), 0);
 
@@ -32,10 +32,9 @@ export async function getDashboardMetrics(req, res) {
 
     // 3. Ventas de ayer para variación
     const pedidosAyer = todosLosPedidos.filter(
-      (p) =>
-        new Date(p.createdAt) >= startOfYesterday &&
-        new Date(p.createdAt) < startOfToday &&
-        p.estado !== 'Cancelado'
+      (p) => new Date(p.createdAt) >= startOfYesterday
+        && new Date(p.createdAt) < startOfToday
+        && p.estado !== 'Cancelado',
     );
     const ventasAyer = pedidosAyer.reduce((acc, p) => acc + (p.total || 0), 0);
 

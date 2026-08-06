@@ -1,20 +1,20 @@
-import nodemailer from 'nodemailer'; // Asegúrate de tener nodemailer instalado (npm install nodemailer)
+import nodemailer from 'nodemailer';
 import Pedido from '../models/Pedido.js';
 import SolicitudArco from '../models/SolicitudArco.js';
 import { validarIdentidadCliente } from '../utils/validarIdentidadCliente.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
-// Configura tu transportador de correo (puedes mover esto a tus variables de entorno .env)
+const IDENTIDAD_INVALIDA = 'No se pudo validar tu identidad. Verifica tu nombre y teléfono registrados.';
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER || 'lenosrellenos@gmail.com',
-    pass: process.env.EMAIL_PASS || 'tmyq iqgs ykjg moaf'
-  }
+    pass: process.env.EMAIL_PASS || 'tmyq iqgs ykjg moaf',
+  },
 });
 
-// ─── Derecho de ACCESO ─────────────────────────────────────────────
 export async function solicitarAcceso(req, res) {
   try {
     const { telefono, nombre } = req.body;
@@ -61,7 +61,6 @@ export async function solicitarAcceso(req, res) {
   }
 }
 
-// ─── Derecho de RECTIFICACIÓN ──────────────────────────────────────
 export async function solicitarRectificacion(req, res) {
   try {
     const {
@@ -115,7 +114,6 @@ export async function solicitarRectificacion(req, res) {
   }
 }
 
-// ─── Derecho de OPOSICIÓN / BLOQUEO ────────────────────────────────
 export async function solicitarBloqueo(req, res) {
   try {
     const { telefono, nombre, motivo } = req.body;
@@ -158,7 +156,6 @@ export async function solicitarBloqueo(req, res) {
   }
 }
 
-// ─── Derecho de CANCELACIÓN (anonimización) ────────────────────────
 export async function solicitarCancelacion(req, res) {
   try {
     const { telefono, nombre } = req.body;
@@ -177,7 +174,6 @@ export async function solicitarCancelacion(req, res) {
 
     const telefonoOriginal = cliente.telefono;
 
-    // Anonimiza el documento Cliente
     cliente.nombre = '[DATO ELIMINADO]';
     cliente.telefono = '[DATO ELIMINADO]';
     cliente.ubicacion = '[DATO ELIMINADO]';
@@ -185,7 +181,6 @@ export async function solicitarCancelacion(req, res) {
     cliente.bloqueado = true;
     await cliente.save();
 
-    // Anonimiza las copias embebidas en el histórico de pedidos
     await Pedido.updateMany(
       { 'cliente.telefono': telefonoOriginal },
       {
@@ -219,7 +214,6 @@ export async function solicitarCancelacion(req, res) {
   }
 }
 
-// ─── Registro público de Solicitud ARCO ───────────────────────────
 export async function crearSolicitudArco(req, res) {
   try {
     const {
@@ -267,7 +261,6 @@ export async function crearSolicitudArco(req, res) {
   }
 }
 
-// ─── Listar todas las solicitudes ARCO (Admin) ──────────────────────
 export async function obtenerSolicitudesArco(req, res) {
   try {
     const solicitudes = await SolicitudArco.find()
@@ -280,7 +273,6 @@ export async function obtenerSolicitudesArco(req, res) {
   }
 }
 
-// ─── Actualizar estado y respuesta de una Solicitud ARCO (Admin) ────
 export async function actualizarSolicitudArco(req, res) {
   try {
     const { id } = req.params;
@@ -300,7 +292,6 @@ export async function actualizarSolicitudArco(req, res) {
 
     await solicitud.save();
 
-    // ENVÍO DE CORREO AUTOMÁTICO AL TITULAR
     const correoDestino = solicitud.email;
     if (correoDestino) {
       const mailOptions = {
@@ -312,23 +303,20 @@ export async function actualizarSolicitudArco(req, res) {
                 <h2 style="color: #ea580c;">Actualización de Derechos ARCO</h2>
                 <p>Hola, <strong>${solicitud.nombreCompleto || 'Titular'}</strong>:</p>
                 <p>Te informamos que el estatus de tu solicitud de derechos ARCO ha sido actualizado.</p>
-                
                 <div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 15px 0;">
                     <p style="margin: 5px 0;"><strong>Folio:</strong> ${solicitud.folio || id}</p>
                     <p style="margin: 5px 0;"><strong>Derecho:</strong> ${solicitud.tipo}</p>
                     <p style="margin: 5px 0;"><strong>Nuevo Estado:</strong> <span style="color: #d97706; font-weight: bold;">${solicitud.estado}</span></p>
                 </div>
-
                 <div style="background-color: #fef3c7; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #f59e0b;">
                     <p style="margin: 0; font-weight: bold; color: #b45309;">Respuesta del Administrador:</p>
                     <p style="margin-top: 5px; color: #78350f;">${solicitud.respuesta || 'Sin comentarios adicionales.'}</p>
                 </div>
-
                 <p style="margin-top: 25px; font-size: 12px; color: #6b7280; text-align: center;">
                     Este es un mensaje automático emitido por el sistema de gestión de Leños Rellenos.
                 </p>
             </div>
-        `
+        `,
       };
 
       transporter.sendMail(mailOptions, (error, info) => {
@@ -342,6 +330,7 @@ export async function actualizarSolicitudArco(req, res) {
 
     registrarAuditoria({
       accion: 'ARCO_ACTUALIZAR_ESTADO',
+      // eslint-disable-next-line no-underscore-dangle
       usuarioId: req.user?._id || 'admin',
       recurso: 'SolicitudArco',
       recursoId: id,

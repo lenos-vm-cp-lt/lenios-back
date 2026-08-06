@@ -17,14 +17,19 @@ import { errorHandler } from './middlewares/error.middleware.js';
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
   credentials: true,
 }));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Documentación interactiva Swagger UI (PRIMERO, antes de la sanitización) ───
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: 'Leños Rellenos - API Docs',
   swaggerOptions: {
@@ -32,7 +37,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   },
 }));
 
-// ─── Prevención de Inyección NoSQL (Compatible con Express 5) ──────────────────
+// ─── Prevención de Inyección NoSQL (Compatible con Express 5) ─────────────
 app.use('/api', (req, res, next) => {
   if (req.body) mongoSanitize.sanitize(req.body, { replaceWith: '_' });
   if (req.params) mongoSanitize.sanitize(req.params, { replaceWith: '_' });
@@ -40,10 +45,9 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// ─── Prevención de Ataques de Fuerza Bruta (Rate Limiting) ───────────────────────
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // Límite de 100 peticiones por IP por ventana
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: {
     success: false,
     error: 'Demasiadas peticiones (Too Many Requests). Por favor intenta más tarde.',
@@ -53,7 +57,6 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-// ─── Rutas API v1 ──────────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/vulnerabilidades', vulnerabilidadRoutes);
 app.use('/api/v1/productos', productoRoutes);
@@ -64,7 +67,6 @@ app.use('/api/v1/derechos-arco', arcoRoutes);
 app.use('/api/v1/config', configRoutes);
 app.use('/api/v1/admin/dashboard', adminRoutes);
 
-// Manejo de Ruta No Encontrada (404)
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -72,7 +74,6 @@ app.use((req, res) => {
   });
 });
 
-// Middleware Global de Errores (debe ser el último en registrarse)
 app.use(errorHandler);
 
 export default app;
