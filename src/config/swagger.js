@@ -11,6 +11,10 @@ const options = {
     },
     servers: [
       {
+        url: 'https://lenios-back.onrender.com/api/v1',
+        description: 'Servidor de producción (Render)',
+      },
+      {
         url: 'http://localhost:3000/api/v1',
         description: 'Servidor de desarrollo local',
       },
