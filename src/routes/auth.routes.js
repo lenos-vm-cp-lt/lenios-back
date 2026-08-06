@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { login } from '../controllers/auth.controller.js';
+import { login, registro, aceptarAvisoPrivacidad, getPerfil } from '../controllers/auth.controller.js';
+import { autenticar } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
@@ -54,5 +55,8 @@ const router = Router();
  *               $ref: '#/components/schemas/Error'
  */
 router.post('/login', login);
+router.post('/registro', registro);
+router.post('/aceptar-aviso', autenticar, aceptarAvisoPrivacidad);
+router.get('/me', autenticar, getPerfil);
 
 export default router;
