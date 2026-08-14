@@ -1,5 +1,7 @@
 import { Router } from 'express';
-import { login, registro, aceptarAvisoPrivacidad, getPerfil } from '../controllers/auth.controller.js';
+import {
+  login, registro, aceptarAvisoPrivacidad, getPerfil,
+} from '../controllers/auth.controller.js';
 import { autenticar } from '../middlewares/auth.middleware.js';
 
 const router = Router();

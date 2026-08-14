@@ -25,9 +25,9 @@ export async function getPedidos(req, res) {
         metodoPago: pago,
         metodo_pago: pago,
         pago_recibido: pagoRecibido,
-        pagoRecibido: pagoRecibido,
+        pagoRecibido,
         estado_pago: estadoPago,
-        estadoPago: estadoPago,
+        estadoPago,
       };
     });
     return successResponse(res, 200, 'Pedidos obtenidos exitosamente', pedidos);
@@ -181,9 +181,9 @@ export async function updatePagoPedido(req, res) {
       req.params.id,
       {
         pago_recibido: isPagado,
-        estado_pago: isPagado ? 'Pagado' : 'Pendiente'
+        estado_pago: isPagado ? 'Pagado' : 'Pendiente',
       },
-      { new: true }
+      { new: true },
     );
 
     if (!pedidoActualizado) {
