@@ -7,9 +7,10 @@ export async function login(req, res) {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return errorResponse(res, 400, 'Email y password son requeridos');
+    if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
+      return errorResponse(res, 400, 'Email y password deben ser cadenas de texto válidas');
     }
+
 
     const usuario = await Usuario.findOne({ email }).select('+password');
     if (!usuario || !usuario.activo) {
