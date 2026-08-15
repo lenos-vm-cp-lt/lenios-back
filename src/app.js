@@ -16,10 +16,24 @@ import { errorHandler } from './middlewares/error.middleware.js';
 
 const app = express();
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  : [
+    'http://localhost:4200',
+    'https://lenios-front.vercel.app',
+  ];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por política CORS'));
+    }
+  },
   credentials: true,
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -37,7 +51,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   },
 }));
 
-// ─── Prevención de Inyección NoSQL (Compatible con Express 5) ─────────────
+// ─── Prevención de Inyección NoSQL (Compatible con Express 5) ───────────────
 app.use('/api', (req, res, next) => {
   if (req.body) mongoSanitize.sanitize(req.body, { replaceWith: '_' });
   if (req.params) mongoSanitize.sanitize(req.params, { replaceWith: '_' });
