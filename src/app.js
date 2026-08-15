@@ -58,6 +58,8 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/auth', authRoutes);
+
 app.use('/api/v1/vulnerabilidades', vulnerabilidadRoutes);
 app.use('/api/v1/productos', productoRoutes);
 app.use('/api/v1/pedidos', pedidoRoutes);
@@ -66,6 +68,9 @@ app.use('/api/v1/clientes', arcoRoutes);
 app.use('/api/v1/derechos-arco', arcoRoutes);
 app.use('/api/v1/config', configRoutes);
 app.use('/api/v1/admin/dashboard', adminRoutes);
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/audit-logs', adminRoutes);
+
 
 app.use((req, res) => {
   res.status(404).json({

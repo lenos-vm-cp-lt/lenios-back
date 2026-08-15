@@ -1,5 +1,6 @@
 import Pedido from '../models/Pedido.js';
 import Producto from '../models/Producto.js';
+import AuditLog from '../models/AuditLog.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 /**
@@ -101,3 +102,16 @@ export async function getDashboardMetrics(req, res) {
     return errorResponse(res, 500, error.message);
   }
 }
+
+/**
+ * Obtener registros de auditoría del sistema (Solo Admin)
+ */
+export async function getAuditLogs(req, res) {
+  try {
+    const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(100);
+    return successResponse(res, 200, 'Registros de auditoría obtenidos exitosamente', logs);
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+}
+

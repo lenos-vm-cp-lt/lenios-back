@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 
+dotenv.config();
+
 import app from './app.js';
 import dbSingleton from './config/db.js';
 
@@ -8,7 +10,6 @@ if (!globalThis.crypto) {
   globalThis.crypto = crypto;
 }
 
-dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
