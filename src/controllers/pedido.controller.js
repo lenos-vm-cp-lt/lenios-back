@@ -2,6 +2,7 @@ import Pedido from '../models/Pedido.js';
 import Usuario from '../models/Usuario.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
 import { successResponse, errorResponse } from '../utils/response.js';
+import { sanitizarTexto } from '../utils/sanitize.js';
 
 const ESTADOS_VALIDOS = ['Pendiente', 'En preparacion', 'En camino', 'Entregado', 'Cancelado'];
 
@@ -53,7 +54,8 @@ export async function createPedido(req, res) {
 
     const entrega = payload.metodoEntrega || payload.metodo_entrega || payload.metodo_envio || 'A domicilio';
     const pago = payload.metodoPago || payload.metodo_pago || 'Efectivo';
-    const notas = payload.notas || payload.observaciones || '';
+    const notasRaw = payload.notas || payload.observaciones || '';
+    const notas = sanitizarTexto(notasRaw);
 
     payload.metodoEntrega = entrega;
     payload.metodo_entrega = entrega;

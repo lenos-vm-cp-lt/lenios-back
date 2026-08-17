@@ -1,6 +1,7 @@
 import Producto from '../models/Producto.js';
 import { registrarAuditoria } from '../utils/auditLog.js';
 import { successResponse, errorResponse } from '../utils/response.js';
+import { sanitizarTexto } from '../utils/sanitize.js';
 
 /**
  * Retorna únicamente los productos que cumplan con disponible: true y stock > 0
@@ -40,8 +41,8 @@ export async function createProducto(req, res) {
     }
 
     const nuevoProducto = await Producto.create({
-      nombre,
-      descripcion,
+      nombre: sanitizarTexto(nombre),
+      descripcion: sanitizarTexto(descripcion),
       precio,
       imagen,
       categoria,
@@ -78,7 +79,14 @@ export async function createProducto(req, res) {
 export async function updateProducto(req, res) {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
+
+    if (updateData.nombre !== undefined) {
+      updateData.nombre = sanitizarTexto(updateData.nombre);
+    }
+    if (updateData.descripcion !== undefined) {
+      updateData.descripcion = sanitizarTexto(updateData.descripcion);
+    }
 
     const producto = await Producto.findById(id);
     if (!producto) {
