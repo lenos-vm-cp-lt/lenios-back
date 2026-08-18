@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
@@ -15,6 +16,27 @@ import adminRoutes from './routes/admin.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 
 const app = express();
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
+      connectSrc: ["'self'", 'https://api.cloudinary.com', 'https://api.whatsapp.com'],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 63072000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin',
+  },
+}));
 
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
@@ -84,7 +106,6 @@ app.use('/api/v1/config', configRoutes);
 app.use('/api/v1/admin/dashboard', adminRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/audit-logs', adminRoutes);
-
 
 app.use((req, res) => {
   res.status(404).json({
