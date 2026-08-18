@@ -18,4 +18,3 @@ export function firmarToken(payload) {
 export function verificarToken(token) {
   return jwt.verify(token, getJwtSecret());
 }
-

@@ -114,4 +114,3 @@ export async function getAuditLogs(req, res) {
     return errorResponse(res, 500, error.message);
   }
 }
-

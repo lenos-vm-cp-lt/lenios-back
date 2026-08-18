@@ -19,4 +19,3 @@ export function autorizar(...rolesPermitidos) {
     return next();
   };
 }
-

@@ -11,7 +11,6 @@ export async function login(req, res) {
       return errorResponse(res, 400, 'Email y password deben ser cadenas de texto válidas');
     }
 
-
     const usuario = await Usuario.findOne({ email }).select('+password');
     if (!usuario || !usuario.activo) {
       registrarAuditoria({

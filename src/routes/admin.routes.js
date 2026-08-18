@@ -45,4 +45,3 @@ router.get('/metrics', getDashboardMetrics);
 router.get('/audit-logs', getAuditLogs);
 
 export default router;
-
