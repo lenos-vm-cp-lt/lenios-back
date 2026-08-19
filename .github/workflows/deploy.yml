@@ -1,0 +1,37 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Correr ESLint
+        run: npm run lint
+
+  deploy:
+    name: Deploy a Render
+    needs: lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar Deploy Hook de Render
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
