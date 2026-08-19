@@ -27,3 +27,5 @@ El middleware `express-mongo-sanitize` neutraliza intentos de NoSQL injection ta
 **Resultado:** `400 Solicitud incorrecta` — el intento de bypass de autenticación fue rechazado.
 
 <img width="939" height="187" alt="image" src="https://github.com/user-attachments/assets/87aaaaed-39c3-468e-8985-692483732909" />
+
+hola
